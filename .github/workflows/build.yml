@@ -29,10 +29,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Verify essential commands # <-- Add this step
         run: |
           echo "--- Checking west ---"
