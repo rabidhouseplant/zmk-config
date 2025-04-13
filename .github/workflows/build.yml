@@ -48,14 +48,6 @@ jobs:
 
       # ... rest of your workflow steps ...  
 
-      - name: Force refresh west.yml # Debug step to ensure correct west.yml is used
-        run: |
-              echo "Attempting to remove potentially cached west.yml"
-              rm -f west.yml
-              echo "Downloading fresh west.yml"
-              curl -L https://raw.githubusercontent.com/zmkfirmware/zmk-config-template/main/west.yml -o west.yml
-              echo "Checking downloaded west.yml:"
-              head -n 3 west.yml # Print first 3 lines for verification
       - name: Initialize west workspace
         run: west init -l # Initialize locally based on west.yml in root
       - name: Update west dependencies
