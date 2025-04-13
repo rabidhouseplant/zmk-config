@@ -29,51 +29,71 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify essential commands # <-- Add this step
+        run: |
+          echo "--- Checking west ---"
+          command -v west || echo "ERROR: west not found"
+          echo "--- Checking cmake ---"
+          command -v cmake || echo "ERROR: cmake not found"
+          echo "--- Checking ninja ---"
+          command -v ninja || echo "ERROR: ninja not found"
+          echo "--- Checking arm-none-eabi-gcc ---"
+          command -v arm-none-eabi-gcc || echo "ERROR: gcc not found"
+          echo "--- PATH ---"
+          echo $PATH
+
+      - name: Force refresh west.yml # <-- Existing step
+        run: |
+          # ... (rest of script) ...
+
+      # ... rest of your workflow steps ...  
+
       - name: Force refresh west.yml # Debug step to ensure correct west.yml is used
         run: |
-          echo "Attempting to remove potentially cached west.yml"
-          rm -f west.yml
-          echo "Downloading fresh west.yml"
-          curl -L https://raw.githubusercontent.com/zmkfirmware/zmk-config-template/main/west.yml -o west.yml
-          echo "Checking downloaded west.yml:"
-          head -n 3 west.yml # Print first 3 lines for verification
-
+              echo "Attempting to remove potentially cached west.yml"
+              rm -f west.yml
+              echo "Downloading fresh west.yml"
+              curl -L https://raw.githubusercontent.com/zmkfirmware/zmk-config-template/main/west.yml -o west.yml
+              echo "Checking downloaded west.yml:"
+              head -n 3 west.yml # Print first 3 lines for verification
       - name: Initialize west workspace
         run: west init -l # Initialize locally based on west.yml in root
-
       - name: Update west dependencies
         run: west update # Fetch ZMK, Zephyr, modules defined in west.yml
-
-      # Optional: Cache west dependencies (runs after west update)
-      # - name: Cache west dependencies
-      #   uses: actions/cache@v4
-      #   env:
-      #     cache-name: cache-zephyr-modules
-      #   with:
-      #     path: |
-      #       bootloader/
-      #       modules/
-      #       tools/
-      #       zephyr/
-      #       zmk/
-      #     key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('west.yml') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-build-${{ env.cache-name }}-
+          # Optional: Cache west dependencies (runs after west update)
+          # - name: Cache west dependencies
+          #   uses: actions/cache@v4
+          #   env:
+          #     cache-name: cache-zephyr-modules
+          #   with:
+          #     path: |
+          #       bootloader/
+          #       modules/
+          #       tools/
+          #       zephyr/
+          #       zmk/
+          #     key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('west.yml') }}
+          #     restore-keys: |
+          #       ${{ runner.os }}-build-${{ env.cache-name }}-
 
       - name: Build firmware
         run: |
-          echo "Building for board: ${{ matrix.board }} shield: ${{ matrix.shield }}"
-          # west build arguments:
-          # -p : pristine build
-          # -b : target board
-          # -d : build directory (relative to GITHUB_WORKSPACE)
-          # -- : separator for CMake/KConfig args
-          # -DSHIELD= : target shield name
-          # -DZMK_CONFIG= : path to user config directory (root in this case)
-          west build -p -b ${{ matrix.board }} -d build/${{ matrix.shield }} -- -DSHIELD=${{ matrix.shield }} -DZMK_CONFIG="${GITHUB_WORKSPACE}"
+              echo "Building for board: ${{ matrix.board }} shield: ${{ matrix.shield }}"
+              # west build arguments:
+              # -p : pristine build
+              # -b : target board
+              # -d : build directory (relative to GITHUB_WORKSPACE)
+              # -- : separator for CMake/KConfig args
+              # -DSHIELD= : target shield name
+              # -DZMK_CONFIG= : path to user config directory (root in this case)
+              west build -p -b ${{ matrix.board }} -d build/${{ matrix.shield }} -- -DSHIELD=${{ matrix.shield }} -DZMK_CONFIG="${GITHUB_WORKSPACE}"
 
       - name: Archive firmware
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-${{ matrix.shield }} # Name the artifact zip file
-          path: build/${{ matrix.shield }}/zephyr/zmk.uf2 # Path to the firmware file to upload
+              name: firmware-${{ matrix.shield }} # Name the artifact zip file
+              path: build/${{ matrix.shield }}/zephyr/zmk.uf2 # Path to the firmware file to upload
