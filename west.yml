@@ -1,11 +1,23 @@
+# West manifest file (west.yml)
+# Defines projects managed by west for this ZMK configuration.
+
 manifest:
+  # Defines remote locations (servers/organizations) where projects can be found.
   remotes:
+    # 'zmkfirmware' is a shorthand name for the main ZMK GitHub organization.
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
+
+  # Lists the projects (repositories) to be managed by west.
   projects:
+    # The main ZMK firmware repository.
     - name: zmk
-      remote: zmkfirmware
-      revision: main
-      import: app/west.yml
+      remote: zmkfirmware # Use the 'zmkfirmware' remote defined above.
+      revision: main # Track the 'main' branch of the ZMK repository.
+      import: app/west.yml # IMPORTANT: This imports dependencies defined within ZMK itself (like Zephyr).
+
+  # Defines the location of this manifest repository (your config repo) within the west workspace.
   self:
+    # This repository (your config) will be placed in a directory named 'config'
+    # relative to the workspace root after 'west init/update'.
     path: config
