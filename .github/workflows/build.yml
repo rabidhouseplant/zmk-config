@@ -51,7 +51,7 @@ jobs:
       - name: Initialize west workspace
         run: west init -l # Initialize locally based on west.yml in root
       - name: Update west dependencies
-        run: west update -v # Fetch ZMK, Zephyr, modules defined in west.yml
+        run: west update # Fetch ZMK, Zephyr, modules defined in west.yml
           # Optional: Cache west dependencies (runs after west update)
           # - name: Cache west dependencies
           #   uses: actions/cache@v4
