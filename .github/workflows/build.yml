@@ -69,14 +69,13 @@ jobs:
           #       ${{ runner.os }}-build-${{ env.cache-name }}-
 
       - name: Build firmware
-        run: |
-             run: |
-              echo "Building for board: ${{ matrix.board }} shield: ${{ matrix.shield }}"
-              west build -s zmk/app -p -b ${{ matrix.board }} -d build/${{ matrix.shield }} -- -DSHIELD=${{ matrix.shield }} -DZMK_CONFIG="${GITHUB_WORKSPACE}"
-#           ^^^^^^^^^^^ Add this argument
-
+        run: | # Pipe character indicates start of multi-line script
+          # Lines below are indented and form the script
+          echo "Building for board: ${{ matrix.board }} shield: ${{ matrix.shield }}"
+          west build -s zmk/app -p -b ${{ matrix.board }} -d build/${{ matrix.shield }} -- -DSHIELD=${{ matrix.shield }} -DZMK_CONFIG="${GITHUB_WORKSPACE}"
+      # This syntax is CORRECT
       - name: Archive firmware
         uses: actions/upload-artifact@v4
         with:
-              name: firmware-${{ matrix.shield }} # Name the artifact zip file
-              path: build/${{ matrix.shield }}/zephyr/zmk.uf2 # Path to the firmware file to upload
+          name: firmware-${{ matrix.shield }} # Name the artifact zip file
+          path: build/${{ matrix.shield }}/zephyr/zmk.uf2 # Path to the firmware file to upload
