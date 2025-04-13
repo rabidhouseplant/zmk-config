@@ -70,15 +70,10 @@ jobs:
 
       - name: Build firmware
         run: |
+             run: |
               echo "Building for board: ${{ matrix.board }} shield: ${{ matrix.shield }}"
-              # west build arguments:
-              # -p : pristine build
-              # -b : target board
-              # -d : build directory (relative to GITHUB_WORKSPACE)
-              # -- : separator for CMake/KConfig args
-              # -DSHIELD= : target shield name
-              # -DZMK_CONFIG= : path to user config directory (root in this case)
-              west build -p -b ${{ matrix.board }} -d build/${{ matrix.shield }} -- -DSHIELD=${{ matrix.shield }} -DZMK_CONFIG="${GITHUB_WORKSPACE}"
+              west build -s zmk/app -p -b ${{ matrix.board }} -d build/${{ matrix.shield }} -- -DSHIELD=${{ matrix.shield }} -DZMK_CONFIG="${GITHUB_WORKSPACE}"
+#           ^^^^^^^^^^^ Add this argument
 
       - name: Archive firmware
         uses: actions/upload-artifact@v4
