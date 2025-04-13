@@ -1,35 +1,49 @@
+# ZMK Build Workflow using official build container
+# Corrected version: Removed 'Force refresh west.yml' step
+
 name: Build ZMK Firmware
 
-on: [push, pull_request, workflow_dispatch]
+# Triggers: Run on push/pull request to main, or manually (workflow_dispatch)
+on:
+  push:
+    branches: [ "main" ] # Adjust branch name if needed
+  pull_request:
+    branches: [ "main" ] # Adjust branch name if needed
+  workflow_dispatch: # Allows manual triggering from Actions tab
 
 jobs:
   build:
+    # Use the official ZMK build container environment
     runs-on: ubuntu-latest
     container:
-      image: zmkfirmware/zmk-build-arm:stable # Use the official ZMK build container
+      image: zmkfirmware/zmk-build-arm:stable
 
+    # Define the build matrix for different boards/shields
     strategy:
       fail-fast: false
       matrix:
         # ================= IMPORTANT ==================
-        # Define your build matrix below.
-        # - Add one 'include' block for each keyboard shield/board combination you want to build.
-        # - Replace 'nice_nano_v2' with your actual board name(s).
-        # - Replace 'corne_left' and 'corne_right' with your actual shield name(s)
-        #   (These should match the names of your .conf/.keymap files in the root).
+        # Customize this section for your keyboard(s)!
+        # - Replace 'nice_nano_v2' with your actual board name.
+        # - Replace 'corne_left', 'corne_right' with your actual shield names
+        #   (matching your .conf/.keymap files in the root).
+        # - Add/remove 'include' blocks as needed.
         # ==============================================
         include:
-          - board: nice_nano_v2 # <--- CHANGE THIS TO YOUR BOARD
-            shield: corne_left # <--- CHANGE THIS TO YOUR SHIELD (e.g., first half)
-          - board: nice_nano_v2 # <--- CHANGE THIS TO YOUR BOARD
-            shield: corne_right # <--- CHANGE THIS TO YOUR SHIELD (e.g., second half)
-          # Add more blocks if you have more shields/boards
+          - board: nice_nano_v2 # <--- EXAMPLE: CHANGE THIS
+            shield: corne_left  # <--- EXAMPLE: CHANGE THIS
+          - board: nice_nano_v2 # <--- EXAMPLE: CHANGE THIS
+            shield: corne_right # <--- EXAMPLE: CHANGE THIS
+          # Add more blocks here if needed
 
+    # Steps to execute for each matrix combination
     steps:
+      # Step 1: Check out the user's configuration repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Verify essential commands # <-- Add this step
+      # Step 2: Verify essential commands are present in the container (Debug)
+      - name: Verify essential commands
         run: |
           echo "--- Checking west ---"
           command -v west || echo "ERROR: west not found"
@@ -42,41 +56,47 @@ jobs:
           echo "--- PATH ---"
           echo $PATH
 
-      - name: Force refresh west.yml # <-- Existing step
-        run: |
-          # ... (rest of script) ...
-
-      # ... rest of your workflow steps ...  
-
+      # Step 3: Initialize the west workspace based on west.yml in the repo root
       - name: Initialize west workspace
-        run: west init -l # Initialize locally based on west.yml in root
+        run: west init -l
+
+      # Step 4: Update west dependencies (fetch ZMK, Zephyr, etc.) with shell tracing
       - name: Update west dependencies
-        run: west update # Fetch ZMK, Zephyr, modules defined in west.yml
-          # Optional: Cache west dependencies (runs after west update)
-          # - name: Cache west dependencies
-          #   uses: actions/cache@v4
-          #   env:
-          #     cache-name: cache-zephyr-modules
-          #   with:
-          #     path: |
-          #       bootloader/
-          #       modules/
-          #       tools/
-          #       zephyr/
-          #       zmk/
-          #     key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('west.yml') }}
-          #     restore-keys: |
-          #       ${{ runner.os }}-build-${{ env.cache-name }}-
+        run: |
+          set -x  # Print each command the shell executes for debugging
+          west update
 
+      # Step 5: List files after update (Debug) - Check if zmk/zephyr exist now
+      - name: List files after west update
+        run: |
+          echo "Listing directory contents after west update:"
+          pwd
+          ls -la
+          echo "--- Checking for zmk directory ---"
+          ls -la zmk || echo "zmk directory not found (after update)"
+          echo "--- Checking for zephyr directory ---"
+          ls -la zephyr || echo "zephyr directory not found (after update)"
 
+      # Step 6: Build the firmware using matrix variables
       - name: Build firmware
-        run: | # Pipe character indicates start of multi-line script
-          # Lines below are indented and form the script
+        run: |
           echo "Building for board: ${{ matrix.board }} shield: ${{ matrix.shield }}"
+          # Build command arguments:
+          # -s zmk/app : Explicitly point to ZMK source code
+          # -p : Pristine build (clean first)
+          # -b : Target board from matrix
+          # -d : Output build directory (using shield name)
+          # -- : Separator for CMake/KConfig args
+          # -DSHIELD= : Target shield name from matrix
+          # -DZMK_CONFIG= : Path to user config dir (repo root in this case)
           west build -s zmk/app -p -b ${{ matrix.board }} -d build/${{ matrix.shield }} -- -DSHIELD=${{ matrix.shield }} -DZMK_CONFIG="${GITHUB_WORKSPACE}"
-      # This syntax is CORRECT
+
+      # Step 7: Archive the compiled firmware (.uf2 file)
       - name: Archive firmware
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-${{ matrix.shield }} # Name the artifact zip file
-          path: build/${{ matrix.shield }}/zephyr/zmk.uf2 # Path to the firmware file to upload
+          # Name for the downloadable artifact zip file
+          name: firmware-${{ matrix.board }}-${{ matrix.shield }}
+          # Path to the firmware file within the build directory
+          path: build/${{ matrix.shield }}/zephyr/zmk.uf2
+
