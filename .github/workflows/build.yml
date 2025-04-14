@@ -1,50 +1,12 @@
-# ZMK Build Workflow using official build container
-# Corrected version: Removed 'Force refresh west.yml' step
-
-name: Build ZMK Firmware
-
-# Triggers: Run on push/pull request to main, or manually (workflow_dispatch)
-on:
-  push:
-    branches: [ "main" ] # Adjust branch name if needed
-  pull_request:
-    branches: [ "main" ] # Adjust branch name if needed
-  workflow_dispatch: # Allows manual triggering from Actions tab
-
-jobs:
-  build:
-    # Use the official ZMK build container environment
-    runs-on: ubuntu-latest
-    container:
-      image: zmkfirmware/zmk-build-arm:stable
-
-    # Define the build matrix for different boards/shields
-    strategy:
-      fail-fast: false
-      matrix:
-        # ================= IMPORTANT ==================
-        # Customize this section for your keyboard(s)!
-        # - Replace 'nice_nano_v2' with your actual board name.
-        # - Replace 'corne_left', 'corne_right' with your actual shield names
-        #   (matching your .conf/.keymap files in the root).
-        # - Add/remove 'include' blocks as needed.
-        # ==============================================
-        include:
-          - board: nice_nano_v2 # <--- EXAMPLE: CHANGE THIS
-            shield: corne_left  # <--- EXAMPLE: CHANGE THIS
-          - board: nice_nano_v2 # <--- EXAMPLE: CHANGE THIS
-            shield: corne_right # <--- EXAMPLE: CHANGE THIS
-          # Add more blocks here if needed
-
     # Steps to execute for each matrix combination
     steps:
       # Step 1: Check out the user's configuration repository
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
       # Step 2: Verify essential commands are present in the container (Debug)
-      - name: Verify essential commands
-        run: |
+    - name: Verify essential commands
+      run: |
           echo "--- Checking west ---"
           command -v west || echo "ERROR: west not found"
           echo "--- Checking cmake ---"
@@ -55,34 +17,54 @@ jobs:
           command -v arm-none-eabi-gcc || echo "ERROR: gcc not found"
           echo "--- PATH ---"
           echo $PATH
+          echo "--- West Version ---" 
+          west --version            
 
       # Step 3: Initialize the west workspace based on west.yml in the repo root
-      - name: Initialize west workspace
-        run: |
-          if [ ! -f west.yml ]; then
-            echo "ERROR: west.yml file not found in the repository root!"
-            exit 1
-          fi
-          west init -l
-
-      # Step 4: Update west dependencies (fetch ZMK, Zephyr, etc.) with shell tracing
-      - name: Update west dependencies
-        run: |
-          set -x # Optional: keep for debugging shell commands
-          west update # REMOVE --force from this line
-
-      # Step 5: List files after update (Debug) - Check if zmk/zephyr exist now
-      - name: List files after west update
-        run: |
-          echo "Listing directory contents after west update:"
-          pwd
+    - name: Initialize west workspace
+      run: west init -l
+      # Step 4: NEW - Check workspace state AFTER init, before update
+    - name: Check west workspace after init
+      run: |
+          echo "--- Listing files after west init ---"
           ls -la
-          echo "--- Checking for zmk directory ---"
-          ls -la zmk || (echo "zmk directory not found (after update)" && exit 1)
-          echo "--- Checking for zephyr directory ---"
-          ls -la zephyr || (echo "zephyr directory not found (after update)" && exit 1)
-       # Combined Step: Update dependencies and immediately check filesystem state
-      - name: Update west dependencies and Check Filesystem # Keep name for now
-        run: echo "Executing simplified step..." # Replace multi-line script with this
+          echo "--- Checking .west/config ---"
+          # Check if west created its internal config based on west.yml
+          ls -la .west/config || echo ".west/config not found" 
+          cat .west/config || echo "Could not cat .west/config"
+          echo "--- Running west list ---"
+          # Check if west recognizes the projects from the manifest
+          west list
 
+      # Step 5: Update west dependencies - COMMENTED OUT FOR THIS TEST
+      # - name: Update west dependencies and Check Filesystem 
+      #   run: |
+      #     echo "--- Disk space before update ---"
+      #     df -h
+      #     df -i
+      #     echo "--- Running west update ---"
+      #     set -x # Keep shell tracing enabled for west update
+      #     west update --fetch-opt=--verbose # Add Git fetch verbosity
+      #     set +x # Disable shell tracing after west update
+      #     echo "--- Disk space after update ---"
+      #     df -h
+      #     df -i
+      #     echo "--- Listing directory contents IMMEDIATELY after west update (within same step) ---"
+      #     pwd
+      #     ls -la
+      #     echo "--- Checking for zmk directory (immediately after update) ---"
+      #     ls -la zmk || echo "zmk directory not found (immediately after update)"
+      #     echo "--- Checking for zephyr directory (immediately after update) ---"
+      #     ls -la zephyr || echo "zephyr directory not found (immediately after update)"
+      #     echo "--- Finished listing ---"
 
+      # Step 6: Build the firmware - COMMENTED OUT FOR THIS TEST
+      # - name: Build firmware
+      #   run: |
+      #     # ... build commands ...
+
+      # Step 7: Archive the compiled firmware - COMMENTED OUT FOR THIS TEST
+      # - name: Archive firmware
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     # ... archive settings ...
