@@ -1,5 +1,5 @@
 # West manifest file (west.yml)
-# Defines projects managed by west for this ZMK configuration.
+# Corrected: Removed self: path: config to match repo structure
 
 manifest:
   # Defines remote locations (servers/organizations) where projects can be found.
@@ -16,8 +16,4 @@ manifest:
       revision: main # Track the 'main' branch of the ZMK repository.
       import: app/west.yml # IMPORTANT: This imports dependencies defined within ZMK itself (like Zephyr).
 
-  # Defines the location of this manifest repository (your config repo) within the west workspace.
-  self:
-    # This repository (your config) will be placed in a directory named 'config'
-    # relative to the workspace root after 'west init/update'.
-    path: config
+# Note: The 'self:' block has been removed as config files are in the root.
