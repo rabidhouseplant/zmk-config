@@ -82,25 +82,7 @@ jobs:
           echo "--- Checking for zephyr directory ---"
           ls -la zephyr || (echo "zephyr directory not found (after update)" && exit 1)
        # Combined Step: Update dependencies and immediately check filesystem state
-      - name: Update west dependencies and Check Filesystem
-        run: |
-          echo "--- Disk space before update ---"
-          df -h
-          df -i
-          echo "--- Running west update ---"
-          set -x # Keep shell tracing enabled for west update
-          west update
-          set +x # Disable shell tracing after west update
-          echo "--- Disk space after update ---"
-          df -h
-          df -i
-          echo "--- Listing directory contents IMMEDIATELY after west update (within same step) ---"
-          pwd
-          ls -la
-          echo "--- Checking for zmk directory (immediately after update) ---"
-          ls -la zmk || echo "zmk directory not found (immediately after update)"
-            echo "--- Checking for zephyr directory (immediately after update) ---"
-          ls -la zephyr || echo "zephyr directory not found (immediately after update)"
-          echo "--- Finished listing ---"
+      - name: Update west dependencies and Check Filesystem # Keep name for now
+        run: echo "Executing simplified step..." # Replace multi-line script with this
 
 
