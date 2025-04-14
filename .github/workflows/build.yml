@@ -81,26 +81,26 @@ jobs:
           ls -la zmk || (echo "zmk directory not found (after update)" && exit 1)
           echo "--- Checking for zephyr directory ---"
           ls -la zephyr || (echo "zephyr directory not found (after update)" && exit 1)
-      # Step 6: Build the firmware using matrix variables
-      - name: Build firmware
+       # Combined Step: Update dependencies and immediately check filesystem state
+      - name: Update west dependencies and Check Filesystem
         run: |
-          echo "Building for board: ${{ matrix.board }} shield: ${{ matrix.shield }}"
-          # Build command arguments:
-          # -s zmk/app : Explicitly point to ZMK source code
-          # -p : Pristine build (clean first)
-          # -b : Target board from matrix
-          # -d : Output build directory (using shield name)
-          # -- : Separator for CMake/KConfig args
-          # -DSHIELD= : Target shield name from matrix
-          # -DZMK_CONFIG= : Path to user config dir (repo root in this case)
-          west build -s zmk/app -p -b ${{ matrix.board }} -d build/${{ matrix.shield }} -- -DSHIELD=${{ matrix.shield }} -DZMK_CONFIG="${GITHUB_WORKSPACE}"
+          echo "--- Disk space before update ---"
+          df -h
+          df -i
+          echo "--- Running west update ---"
+          set -x # Keep shell tracing enabled for west update
+          west update
+          set +x # Disable shell tracing after west update
+          echo "--- Disk space after update ---"
+          df -h
+          df -i
+          echo "--- Listing directory contents IMMEDIATELY after west update (within same step) ---"
+          pwd
+          ls -la
+          echo "--- Checking for zmk directory (immediately after update) ---"
+          ls -la zmk || echo "zmk directory not found (immediately after update)"
+            echo "--- Checking for zephyr directory (immediately after update) ---"
+          ls -la zephyr || echo "zephyr directory not found (immediately after update)"
+          echo "--- Finished listing ---"
 
-      # Step 7: Archive the compiled firmware (.uf2 file)
-      - name: Archive firmware
-        uses: actions/upload-artifact@v4
-        with:
-          # Name for the downloadable artifact zip file
-          name: firmware-${{ matrix.board }}-${{ matrix.shield }}
-          # Path to the firmware file within the build directory
-          path: build/${{ matrix.shield }}/zephyr/zmk.uf2
 
