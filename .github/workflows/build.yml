@@ -68,8 +68,8 @@ jobs:
       # Step 4: Update west dependencies (fetch ZMK, Zephyr, etc.) with shell tracing
       - name: Update west dependencies
         run: |
-          set -x  # Print each command the shell executes for debugging
-          west update --force
+          set -x # Optional: keep for debugging shell commands
+          west update # REMOVE --force from this line
 
       # Step 5: List files after update (Debug) - Check if zmk/zephyr exist now
       - name: List files after west update
