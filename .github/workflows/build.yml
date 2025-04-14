@@ -1,70 +1,70 @@
-    # Steps to execute for each matrix combination
-    steps:
-      # Step 1: Check out the user's configuration repository
-    - name: Checkout repository
-      uses: actions/checkout@v4
+steps:
+  # Step 1: Check out the user's configuration repository
+  - name: Checkout repository
+    uses: actions/checkout@v4
 
-      # Step 2: Verify essential commands are present in the container (Debug)
-    - name: Verify essential commands
-      run: |
-          echo "--- Checking west ---"
-          command -v west || echo "ERROR: west not found"
-          echo "--- Checking cmake ---"
-          command -v cmake || echo "ERROR: cmake not found"
-          echo "--- Checking ninja ---"
-          command -v ninja || echo "ERROR: ninja not found"
-          echo "--- Checking arm-none-eabi-gcc ---"
-          command -v arm-none-eabi-gcc || echo "ERROR: gcc not found"
-          echo "--- PATH ---"
-          echo $PATH
-          echo "--- West Version ---" 
-          west --version            
+  # Step 2: Verify essential commands are present in the container (Debug)
+  - name: Verify essential commands
+    run: |
+      echo "--- Checking west ---"
+      command -v west || echo "ERROR: west not found"
+      echo "--- Checking cmake ---"
+      command -v cmake || echo "ERROR: cmake not found"
+      echo "--- Checking ninja ---"
+      command -v ninja || echo "ERROR: ninja not found"
+      echo "--- Checking arm-none-eabi-gcc ---"
+      command -v arm-none-eabi-gcc || echo "ERROR: gcc not found"
+      echo "--- PATH ---"
+      echo $PATH
+      echo "--- West Version ---"
+      west --version
 
-      # Step 3: Initialize the west workspace based on west.yml in the repo root
-    - name: Initialize west workspace
-      run: west init -l
-      # Step 4: NEW - Check workspace state AFTER init, before update
-    - name: Check west workspace after init
-      run: |
-          echo "--- Listing files after west init ---"
-          ls -la
-          echo "--- Checking .west/config ---"
-          # Check if west created its internal config based on west.yml
-          ls -la .west/config || echo ".west/config not found" 
-          cat .west/config || echo "Could not cat .west/config"
-          echo "--- Running west list ---"
-          # Check if west recognizes the projects from the manifest
-          west list
+  # Step 3: Initialize the west workspace based on west.yml in the repo root
+  - name: Initialize west workspace
+    run: west init -l
 
-      # Step 5: Update west dependencies - COMMENTED OUT FOR THIS TEST
-      # - name: Update west dependencies and Check Filesystem 
-      #   run: |
-      #     echo "--- Disk space before update ---"
-      #     df -h
-      #     df -i
-      #     echo "--- Running west update ---"
-      #     set -x # Keep shell tracing enabled for west update
-      #     west update --fetch-opt=--verbose # Add Git fetch verbosity
-      #     set +x # Disable shell tracing after west update
-      #     echo "--- Disk space after update ---"
-      #     df -h
-      #     df -i
-      #     echo "--- Listing directory contents IMMEDIATELY after west update (within same step) ---"
-      #     pwd
-      #     ls -la
-      #     echo "--- Checking for zmk directory (immediately after update) ---"
-      #     ls -la zmk || echo "zmk directory not found (immediately after update)"
-      #     echo "--- Checking for zephyr directory (immediately after update) ---"
-      #     ls -la zephyr || echo "zephyr directory not found (immediately after update)"
-      #     echo "--- Finished listing ---"
+  # Step 4: NEW - Check workspace state AFTER init, before update
+  - name: Check west workspace after init
+    run: |
+      echo "--- Listing files after west init ---"
+      ls -la
+      echo "--- Checking .west/config ---"
+      # Check if west created its internal config based on west.yml
+      ls -la .west/config || echo ".west/config not found"
+      cat .west/config || echo "Could not cat .west/config"
+      echo "--- Running west list ---"
+      # Check if west recognizes the projects from the manifest
+      west list
 
-      # Step 6: Build the firmware - COMMENTED OUT FOR THIS TEST
-      # - name: Build firmware
-      #   run: |
-      #     # ... build commands ...
+  # Step 5: Update west dependencies - COMMENTED OUT FOR THIS TEST
+  # - name: Update west dependencies and Check Filesystem
+  #   run: |
+  #     echo "--- Disk space before update ---"
+  #     df -h
+  #     df -i
+  #     echo "--- Running west update ---"
+  #     set -x # Keep shell tracing enabled for west update
+  #     west update --fetch-opt=--verbose # Add Git fetch verbosity
+  #     set +x # Disable shell tracing after west update
+  #     echo "--- Disk space after update ---"
+  #     df -h
+  #     df -i
+  #     echo "--- Listing directory contents IMMEDIATELY after west update (within same step) ---"
+  #     pwd
+  #     ls -la
+  #     echo "--- Checking for zmk directory (immediately after update) ---"
+  #     ls -la zmk || echo "zmk directory not found (immediately after update)"
+  #     echo "--- Checking for zephyr directory (immediately after update) ---"
+  #     ls -la zephyr || echo "zephyr directory not found (immediately after update)"
+  #     echo "--- Finished listing ---"
 
-      # Step 7: Archive the compiled firmware - COMMENTED OUT FOR THIS TEST
-      # - name: Archive firmware
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     # ... archive settings ...
+  # Step 6: Build the firmware - COMMENTED OUT FOR THIS TEST
+  # - name: Build firmware
+  #   run: |
+  #     # ... build commands ...
+
+  # Step 7: Archive the compiled firmware - COMMENTED OUT FOR THIS TEST
+  # - name: Archive firmware
+  #   uses: actions/upload-artifact@v4
+  #   with:
+  #     # ... archive settings ...
